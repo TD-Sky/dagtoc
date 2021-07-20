@@ -20,7 +20,27 @@ $ pip install pymupdf
 
 ## 演示
 
-以 demo 目录下的文件为例:
+查看帮助:
+
+```shell
+$ python dagtoc.py -h
+
+usage: dagtoc.py [-h] [-d | -a TOC | -g] [-r RMB] pdf
+
+删除/增添/获取pdf的目录; 目录导入/导出格式为csv; 文件行: 目录级别|标题|页码
+
+positional arguments:
+  pdf                   文件(.pdf)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -d, --delete          删除目录
+  -a TOC, --add TOC     添加目录
+  -g, --get             获取目录
+  -r RMB, --revise RMB  RMB = 实际页码 — 书籍页码; 用于修正csv内的页码误差, 默认为0
+```
+
+下面以 demo 目录下的文件为例:
 
 ```shell
 $ ls demo/
@@ -66,3 +86,6 @@ csv文件内的页码应是**书籍页码**. 导入时我们令其加上**RMB**�
 ## 记住dagtoc
 
 dagtoc = delete-add-get-TOC
+
+
+
