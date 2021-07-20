@@ -1,14 +1,12 @@
-[TOC]
+## 介绍
 
-### 介绍
+dagtoc是 PyMuPdf 的命令行前端, 它能让你轻松**增添/获取/移除** pdf 的目录.
 
-dagtoc是基于 PyMuPdf 的命令行软件, 它可以让你轻松使用 MuPdf 对pdf的目录进行简单的操作(增加/获取/移除).
-
-[MuPdf](https://mupdf.com/) 是一款历史悠久而且强大的pdf解析器, 而[PyMuPdf](https://github.com/pymupdf/PyMuPDF) 是它的Python包装, dagtoc所做的工作是为 PyMuPdf 制作了一个命令行前端.
+[PyMuPdf](https://github.com/pymupdf/PyMuPDF) 是 [MuPdf](https://mupdf.com/) 的 Python 绑定, 而 MuPdf 是一款历史悠久且功能强悍的pdf解析器.
 
 
 
-### 安装
+## 安装
 
 首先, 请使用 pip 安装`pymupdf`:
 
@@ -20,7 +18,7 @@ $ pip install pymupdf
 
 
 
-### 演示
+## 演示
 
 以 demo 目录下的文件为例:
 
@@ -28,12 +26,13 @@ $ pip install pymupdf
 $ ls demo/
 Makefile.pdf
 Makefile.pdf.toc
+Makefile.pdf-no-toc
 ```
 
 获取目录:
 
 ```shell
-$ python dagtoc.py -g Makefile.pdf
+$ python dagtoc.py -g Makefile.pdf -r 5
 ```
 
 移除目录:
@@ -47,13 +46,23 @@ $ python dagtoc.py -d Makefile.pdf
 虽然 MuPdf 创建目录的操作是覆盖式的, 但我还是建议使用无目录的pdf进行此项操作!
 
 ```shell
-$ python dagtoc.py -a Makefile.pdf.toc -r 0 NOTOC_Makefile.pdf
+$ python dagtoc.py -a Makefile.pdf.toc -r 5 Makefile.pdf-no-toc
 ```
 
-选项`-r`指定了页码误差参数, 即`真实页码(阅读器显示页码) - 书籍页码`, 用于修正页码的偏移. 许多书籍的扉页、前言、目录部分用的是罗马数字标记, 你需要手动换算为负数.
+
+
+## 参数 RMB
+
+此参数由选项`-r`指定, 形式为`-r RMB`.
+
+RMB: Real page number Minus Book page number. (真实页码 - 书籍页码)
+
+csv文件内的页码应是**书籍页码**. 导入时我们令其加上**RMB**以得**真实页码**(阅读器显示页码); 导出时我们让真实页码减去**RMB**以得书籍页码.
+
+很多时候**RMB**都不为0, 因为书籍的封面、前言、目录部分可能使用罗马数字标记, 尔后在内容部分自1数起. 对此, 你必须手动换算罗马数字页码至非正整数.
 
 
 
-### 记住dagtoc
+## 记住dagtoc
 
 dagtoc = delete-add-get-TOC
