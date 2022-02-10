@@ -9,17 +9,28 @@ def delete_toc(in_pdf: str):
     """删除pdf目录"""
     doc = fitz.open(in_pdf)
     doc.set_toc(None)
-    doc.save("{}-no-toc".format(in_pdf))
+    out_pdf: str = in_pdf.rsplit('.', 1)[0] + "-NOTOC.pdf"
+    doc.save(out_pdf)
 
 
 def add_toc(in_pdf: str, toc_file: str, RMB: int):
     """导入csv为pdf的目录"""
-    with open(toc_file, 'rt', newline='') as fp:
-        toc = [ [ int(line[0]), line[1], int(line[2]) + RMB ] for line in csv.reader(fp, delimiter='|') ] 
+    with open(toc_file, 'rt', encoding="utf-8", newline='') as fp:
+        toc = [ ( int(line[0]), line[1], int(line[2]) + RMB ) for line in csv.reader(fp, delimiter='|') ] 
+
+    verify_increasing(toc)
 
     doc = fitz.open(in_pdf)
     doc.set_toc(toc)
-    doc.save("{}-with-toc".format(in_pdf))
+    out_pdf: str = in_pdf.rsplit('.', 1)[0] + "-TOC.pdf"
+    doc.save(out_pdf)
+
+
+def verify_increasing(toc: list):
+    """确保页码排列是宽松单调递增的"""
+    for i in range(0, len(toc) - 1):
+        if toc[i][2] > toc[i+1][2]:
+            raise RuntimeError("Wrong page occurs in line {} or {} of TOC.".format(i+1, i+2))
 
 
 def get_toc(in_pdf: str, RMB: int):
@@ -30,7 +41,8 @@ def get_toc(in_pdf: str, RMB: int):
     for t in toc:
         t[2] -= RMB
 
-    with open("{}.toc".format(in_pdf), 'w+', newline='') as fp:
+    toc_file: str = in_pdf.rsplit('.', 1)[0] + ".toc"
+    with open(toc_file, 'w+', encoding="utf-8", newline='') as fp:
         csv.writer(fp, delimiter='|').writerows(toc)
 
 
@@ -56,15 +68,14 @@ if __name__ == "__main__":
     args = parse_args()
 
     try:
-        if args.delete == True:
+        if args.delete:
             delete_toc(args.pdf)
         elif args.toc != "":
             add_toc(args.pdf, args.toc, args.RMB)
-        elif args.get == True:
+        elif args.get:
             get_toc(args.pdf, args.RMB)
         else:
-            print("Incorrect operation")
-    except Exception as exp:
-        #raise exp
-        print("Incorrect operation")
+            print("Unknown operation!")
+    except UnicodeDecodeError:
+        print("Failed: {} isn't encoded in UTF-8.".format(args.toc))
 
