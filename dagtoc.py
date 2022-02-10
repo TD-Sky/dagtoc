@@ -49,17 +49,17 @@ def get_toc(in_pdf: str, RMB: int):
 def parse_args() -> list:
     """解析命令参数"""
     parser = argparse.ArgumentParser(description=
-                                    "删除/增添/获取pdf的目录; "
-                                    "目录导入/导出格式为csv; "
-                                    "文件行: 目录级别|标题|页码")
+                                     "delete/add/get contents of pdf; "
+                                     "contents information is carried by csv; "
+                                     "line in csv: level(>0)|title|page number")
 
     ex_group = parser.add_mutually_exclusive_group()
-    ex_group.add_argument("-d", "--delete", action="store_true", help="删除目录")
-    ex_group.add_argument("-a", "--add", dest="toc", type=str, default="", help="添加目录")
-    ex_group.add_argument("-g", "--get", action="store_true", help="获取目录")
+    ex_group.add_argument("-d", "--delete", action="store_true", help="delete contents")
+    ex_group.add_argument("-a", "--add", dest="toc", type=str, default="", help="add contents")
+    ex_group.add_argument("-g", "--get", action="store_true", help="get contents")
     parser.add_argument("-r", "--revise", dest="RMB", type=int, default=0,
-                        help="RMB = 实际页码 — 书籍页码; 用于修正csv内的页码误差, 默认为0")
-    parser.add_argument("pdf", type=str, help="文件(.pdf)")
+                        help="RMB = Real page number — Book page number; it is used to correct offset of page numbers")
+    parser.add_argument("pdf", type=str, help="target pdf")
 
     return parser.parse_args()
 
