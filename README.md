@@ -1,91 +1,100 @@
-## 介绍
+<h1 align="center">🐍 dagtoc 📖</h1>
 
-dagtoc是 PyMuPdf 的命令行前端, 它能让你轻松**增添/获取/移除** pdf 的目录.
+<h5 align="center">A command-line tool for adding, getting and deleting contents of pdf</h5>
 
-[PyMuPdf](https://github.com/pymupdf/PyMuPDF) 是 [MuPdf](https://mupdf.com/) 的 Python 绑定, 而 MuPdf 是一款历史悠久且功能强悍的pdf解析器.
+<p align="center">
+  <a href="docs/README_CN.md">简体中文</a>
+</p>
+
+> python v3.10.2+
 
 
 
-## 安装
+## Introduction
 
-首先, 请使用 pip 安装`pymupdf`:
+**dagtoc** is based on [PyMuPdf](https://github.com/pymupdf/PyMuPDF) that is the python binding of [MuPdf](https://mupdf.com/). Mupdf is a celebrated and powerful pdf parser.
 
-```shell
-$ pip install pymupdf
+
+
+## Installation
+
+**dagtoc** only depends on one library: pymupdf.
+
+```bash
+$ pip3 install pymupdf
 ```
 
-此库是dagtoc唯一的依赖, 之后直接使用`dagtoc.py`即可.
+After then you are able to use `dagtoc.py` directly.
+
+If you use [AUR](https://wiki.archlinux.org/title/Arch_User_Repository), you could install dagtoc from there via **AUR Helper**.
 
 
 
-## 演示
+## Demostration
 
-查看帮助:
+Ask for help:
 
-```shell
+```bash
 $ python dagtoc.py -h
 
 usage: dagtoc.py [-h] [-d | -a TOC | -g] [-r RMB] pdf
 
-删除/增添/获取pdf的目录; 目录导入/导出格式为csv; 文件行: 目录级别|标题|页码
+delete/add/get contents of pdf; contents information is carried by csv; line in csv: level(>0)|title|page number
 
 positional arguments:
-  pdf                   文件(.pdf)
+  pdf                   target pdf
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
-  -d, --delete          删除目录
-  -a TOC, --add TOC     添加目录
-  -g, --get             获取目录
-  -r RMB, --revise RMB  RMB = 实际页码 — 书籍页码; 用于修正csv内的页码误差, 默认为0
+  -d, --delete          delete contents
+  -a TOC, --add TOC     add contents
+  -g, --get             get contents
+  -r RMB, --revise RMB  RMB = Real page number — Book page number; it is used to correct offset of page numbers
 ```
 
-下面以 demo 目录下的文件为例:
+Now, I will show how to use dagtoc by operating the files in directory **demo**:
 
-```shell
-$ ls demo/
+```bash
+Makefile-NOTOC.pdf
 Makefile.pdf
-Makefile.pdf.toc
-Makefile.pdf-no-toc
+Makefile.toc
 ```
 
-获取目录:
+- Getting contents:
 
-```shell
-$ python dagtoc.py -g Makefile.pdf -r 5
-```
+    ```bash
+    $ python dagtoc.py -g Makefile.pdf -r 5
+    ```
 
-移除目录:
+- Deleting contents:
 
-```shell
-$ python dagtoc.py -d Makefile.pdf
-```
+    ```bash
+    $ python dagtoc.py -d Makefile.pdf
+    ```
 
-增加目录:
+- Adding contents:
 
-虽然 MuPdf 创建目录的操作是覆盖式的, 但我还是建议使用无目录的pdf进行此项操作!
+    **MuPdf** will output a new pdf by overwriting the original contents of input pdf. The input pdf will not change.
 
-```shell
-$ python dagtoc.py -a Makefile.pdf.toc -r 5 Makefile.pdf-no-toc
-```
-
-
-
-## 参数 RMB
-
-此参数由选项`-r`指定, 形式为`-r RMB`.
-
-RMB: Real page number Minus Book page number. (真实页码 - 书籍页码)
-
-csv文件内的页码应是**书籍页码**. 导入时我们令其加上**RMB**以得**真实页码**(阅读器显示页码); 导出时我们让真实页码减去**RMB**以得书籍页码.
-
-很多时候**RMB**都不为0, 因为书籍的封面、前言、目录部分可能使用罗马数字标记, 尔后在内容部分自1数起. 对此, 你必须手动换算罗马数字页码至非正整数.
+    ```bash
+    $ python dagtoc.py -a Makefile.toc -r 5 Makefile-NOTOC.pdf
+    ```
 
 
 
-## 记住dagtoc
+## About argument RMB
+
+This argument belongs to option `-r`.
+
+**RMB** means  *"Real page number Minus Book page number"*.
+
+The pages in toc file(.csv) should be **Book page number**. When importing TOC, dagtoc adds **RMB** to it to get **Real page number** used by pdf reader. When exporting TOC, dagtoc subtracts **RMB** from Real page number to get Book page number.
+
+**RMB** is usually not 0, because cover, preface and contents of book may be numbered in Roman numerals. Then main body are counted from 1.Therefore you have to covert these Roman numerals to nonpositive integers.
+
+
+
+## Remember dagtoc
 
 dagtoc = delete-add-get-TOC
-
-
 
