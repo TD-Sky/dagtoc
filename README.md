@@ -37,9 +37,10 @@ Ask for help:
 ```bash
 $ python dagtoc.py -h
 
-usage: dagtoc.py [-h] [-d | -a TOC | -g] [-r RMB] pdf
+usage: dagtoc.py [-h] [-d | -a TOC | -g | -c] [-r RMB] pdf
 
-delete/add/get contents of pdf; contents information is carried by csv; line in csv: level(>0)|title|page number
+delete/add/get contents of pdf; contents information is carried by csv;
+line in csv: level(>0)|title|page number
 
 positional arguments:
   pdf                   target pdf
@@ -49,7 +50,9 @@ options:
   -d, --delete          delete contents
   -a TOC, --add TOC     add contents
   -g, --get             get contents
-  -r RMB, --revise RMB  RMB = Real page number — Book page number; it is used to correct offset of page numbers
+  -c, --check           check increasing
+  -r RMB, --revise RMB  RMB = Real page number — Book page number; it is used
+                        to correct offset of page numbers
 ```
 
 Now, I will show how to use dagtoc by operating the files in directory **demo**:
@@ -78,6 +81,12 @@ Makefile.toc
 
     ```bash
     $ python dagtoc.py -a Makefile.toc -r 5 Makefile-NOTOC.pdf
+    ```
+
+- Checking the increasing of pages:
+
+    ```bash
+    $ python dagtoc.py -c Makefile.pdf
     ```
 
 
