@@ -3,45 +3,56 @@
 import argparse
 import csv
 import fitz
+from pathlib import Path
 
 
 def delete_toc(in_pdf: str):
     """删除pdf目录"""
-    doc = fitz.open(in_pdf)
-    doc.set_toc(None)
-    out_pdf: str = in_pdf.rsplit('.', 1)[0] + "-NOTOC.pdf"
-    doc.save(out_pdf)
+    out_pdf: str = Path(in_pdf).stem + "-NOTOC.pdf"
+
+    with fitz.open(in_pdf) as doc:
+        doc.set_toc(None)
+        doc.save(out_pdf)
+
+
+def verify_increasing(toc: list):
+    """确保页码排列宽松单调递增"""
+    for i in range(0, len(toc) - 1):
+        if toc[i][2] > toc[i+1][2]:
+            raise RuntimeError("Wrong page occurs at line {} or {} in TOC".format(i+1, i+2))
 
 
 def add_toc(in_pdf: str, toc_file: str, RMB: int):
     """导入csv为pdf的目录"""
+    out_pdf: str = Path(in_pdf).stem + "-TOC.pdf"
+
     with open(toc_file, 'rt', encoding="utf-8", newline='') as fp:
-        toc = [ ( int(line[0]), line[1], int(line[2]) + RMB ) for line in csv.reader(fp, delimiter='|') ] 
+        toc = [ ( int(line[0]), line[1], int(line[2]) + RMB ) for line in csv.reader(fp, delimiter='|') ]
 
     verify_increasing(toc)
 
-    doc = fitz.open(in_pdf)
-    doc.set_toc(toc)
-    out_pdf: str = in_pdf.rsplit('.', 1)[0] + "-TOC.pdf"
-    doc.save(out_pdf)
+    with fitz.open(in_pdf) as doc:
+        doc.set_toc(toc)
+        doc.save(out_pdf)
 
 
-def verify_increasing(toc: list):
-    """确保页码排列是宽松单调递增的"""
-    for i in range(0, len(toc) - 1):
-        if toc[i][2] > toc[i+1][2]:
-            raise RuntimeError("Wrong page occurs in line {} or {} of TOC.".format(i+1, i+2))
+def check_toc(in_pdf: str):
+    """检查目录页码是否单调递增"""
+    with fitz.open(in_pdf) as doc:
+        toc = doc.get_toc()
+
+    verify_increasing(toc)
 
 
 def get_toc(in_pdf: str, RMB: int):
     """导出pdf的目录为csv"""
-    doc = fitz.open(in_pdf)
+    toc_file: str = Path(in_pdf).stem + ".toc"
 
-    toc = doc.get_toc()
-    for t in toc:
-        t[2] -= RMB
+    with fitz.open(in_pdf) as doc:
+        toc = doc.get_toc()
+        for t in toc:
+            t[2] -= RMB
 
-    toc_file: str = in_pdf.rsplit('.', 1)[0] + ".toc"
     with open(toc_file, 'w+', encoding="utf-8", newline='') as fp:
         csv.writer(fp, delimiter='|').writerows(toc)
 
@@ -57,6 +68,7 @@ def parse_args() -> list:
     ex_group.add_argument("-d", "--delete", action="store_true", help="delete contents")
     ex_group.add_argument("-a", "--add", dest="toc", type=str, default="", help="add contents")
     ex_group.add_argument("-g", "--get", action="store_true", help="get contents")
+    ex_group.add_argument("-c", "--check", action="store_true", help="check increasing")
     parser.add_argument("-r", "--revise", dest="RMB", type=int, default=0,
                         help="RMB = Real page number — Book page number; it is used to correct offset of page numbers")
     parser.add_argument("pdf", type=str, help="target pdf")
@@ -74,8 +86,9 @@ if __name__ == "__main__":
             add_toc(args.pdf, args.toc, args.RMB)
         elif args.get:
             get_toc(args.pdf, args.RMB)
+        elif args.check:
+            check_toc(args.pdf)
         else:
-            print("Unknown operation!")
+            print("[ERROR] Undefined operation")
     except UnicodeDecodeError:
-        print("Failed: {} isn't encoded in UTF-8.".format(args.toc))
-
+        print("[ERROR] {} isn't encoded in UTF-8".format(args.toc))

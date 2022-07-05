@@ -33,7 +33,7 @@ $ pip3 install pymupdf
 ```bash
 $ python dagtoc.py -h
 
-usage: dagtoc.py [-h] [-d | -a TOC | -g] [-r RMB] pdf
+usage: dagtoc.py [-h] [-d | -a TOC | -g | -c] [-r RMB] pdf
 
 delete/add/get contents of pdf; contents information is carried by csv; line in csv: level(>0)|title|page number
 删除/增添/获取pdf的目录; 目录信息记录在csv里; csv行格式：级别(>0)|标题|页码
@@ -46,6 +46,7 @@ options:
   -d, --delete          delete contents (删除目录)
   -a TOC, --add TOC     add contents (添加目录)
   -g, --get             get contents (获取目录)
+  -c --check            check increasing (检查页码是否宽松单调递增)
   -r RMB, --revise RMB  RMB = Real page number — Book page number; it is used to correct offset of page numbers
                         RMB = 实际页码 — 书籍页码; 用于纠正页码偏移
 ```
@@ -76,6 +77,13 @@ Makefile.toc
 
     ```bash
     $ python dagtoc.py -a Makefile.toc -r 5 Makefile-NOTOC.pdf
+    ```
+
+
+- 检查页码是否宽松单调递增：
+
+    ```bash
+    $ python dagtoc.py -c Makefile.pdf
     ```
 
 
