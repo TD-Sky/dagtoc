@@ -1,0 +1,28 @@
+[package]
+name = "dagtoc"
+version = "4.0.0"
+authors = ["Collide <three-dim-sky@foxmail.com>"]
+edition = "2021"
+categories = ["command-line-utilities"]
+keywords = ["pdf"]
+description = "A CLI tool for operating pdf contents"
+repository = "https://github.com/TD-Sky/dagtoc"
+documentation = "https://github.com/TD-Sky/dagtoc"
+readme = "README.md"
+license = "GPL-3.0"
+
+[dependencies]
+anyhow = "1.0.72"
+clap = { version = "4.3.19", features = ["derive"] }
+kdl = "4.6.0"
+mupdf = "0.4.2"
+pyo3 = { version = "0.19.1", features = ["auto-initialize"] }
+
+[build-dependencies]
+clap = { version = "4.3.19", features = ["derive", "env"] }
+clap_complete = "4.3.2"
+clap_complete_nushell = "0.1.11"
+
+[profile.release]
+lto = true
+strip = true
