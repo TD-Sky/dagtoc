@@ -4,7 +4,7 @@ pub use error::*;
 use mupdf::Outline;
 
 #[derive(Debug)]
-pub struct Toc<S>(pub S);
+pub struct Toc<O>(pub(super) Vec<O>);
 
 #[derive(Debug)]
 pub struct UserOutline<'toc> {
@@ -15,7 +15,7 @@ pub struct UserOutline<'toc> {
 
 pub type PymupdfOutline<'toc> = (u32, &'toc str, u32);
 
-impl Toc<Vec<UserOutline<'_>>> {
+impl Toc<UserOutline<'_>> {
     pub fn verify(&self) -> Result<(), TocError> {
         fn verify_rec(outlines: &[UserOutline<'_>], pre_page: &mut u32) -> Result<(), TocError> {
             for outline in outlines {
@@ -82,7 +82,7 @@ impl Toc<Vec<UserOutline<'_>>> {
     }
 }
 
-impl Toc<Vec<Outline>> {
+impl Toc<Outline> {
     pub fn verify(&self) -> Result<(), TocError> {
         fn verify_rec(outlines: &[Outline], pre_page: &mut u32) -> Result<(), TocError> {
             for outline in outlines {
@@ -124,12 +124,5 @@ impl Toc<Vec<Outline>> {
         }
 
         offset_pages_internal(&mut self.0, count)
-    }
-}
-
-impl AsRef<[Outline]> for Toc<Vec<Outline>> {
-    #[inline]
-    fn as_ref(&self) -> &[Outline] {
-        &self.0
     }
 }

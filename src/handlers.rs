@@ -8,8 +8,6 @@ use mupdf::Document;
 use pyo3::types::PyTuple;
 use pyo3::Python;
 
-use crate::codec::IntoKdlDocument;
-use crate::codec::TryAsOutlines;
 use crate::toc::Toc;
 
 pub fn delete(pdf: &Path, output: &Path) -> Result<()> {
@@ -37,7 +35,7 @@ pub fn get(pdf: &Path, offset: i32) -> Result<()> {
         toc.offset_pages(offset);
     }
 
-    let toc = toc.as_ref().into_kdl_doc();
+    let toc = KdlDocument::from(&toc);
     print!("{toc}");
 
     Ok(())
@@ -47,8 +45,8 @@ pub fn add(pdf: &Path, output: &Path, toc: &Path, offset: i32) -> Result<()> {
     let mut buf = String::new();
     File::open(toc)?.read_to_string(&mut buf)?;
     let toc: KdlDocument = buf.parse()?;
+    let mut toc = Toc::try_from(&toc)?;
 
-    let mut toc = Toc(toc.try_as_outlines()?);
     toc.verify()?;
 
     if offset != 0 {
