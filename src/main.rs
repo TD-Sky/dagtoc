@@ -6,8 +6,9 @@ mod handlers;
 mod toc;
 
 use clap::Parser;
+use std::process::ExitCode;
 
-fn main() {
+fn main() -> ExitCode {
     let cli = Cli::parse();
 
     let result = if cli.action.delete {
@@ -23,6 +24,9 @@ fn main() {
     };
 
     if let Err(e) = result {
-        println!("{e}");
+        println!("dagtoc: {e}");
+        ExitCode::FAILURE
+    } else {
+        ExitCode::SUCCESS
     }
 }
