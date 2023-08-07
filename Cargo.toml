@@ -10,18 +10,26 @@ repository = "https://github.com/TD-Sky/dagtoc"
 documentation = "https://github.com/TD-Sky/dagtoc"
 readme = "README.md"
 license = "GPL-3.0"
+include = [
+  "build.rs",
+  "src/**/*",
+  "Cargo.toml",
+  "Cargo.lock",
+  "LICENSE*",
+  "README.md",
+]
 
 [dependencies]
 anyhow = "1.0.72"
 clap = { version = "4.3.19", features = ["derive"] }
 kdl = "4.6.0"
 mupdf = "0.4.2"
-pyo3 = { version = "0.19.1", features = ["auto-initialize"] }
+pyo3 = { version = "0.19.2", features = ["auto-initialize"] }
 
 [build-dependencies]
 clap = { version = "4.3.19", features = ["derive", "env"] }
 clap_complete = "4.3.2"
-clap_complete_nushell = "0.1.11"
+clap_complete_nushell = "4.3.1"
 
 [profile.release]
 lto = true
