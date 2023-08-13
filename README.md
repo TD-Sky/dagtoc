@@ -35,12 +35,6 @@ I plan to replace PyMuPDF with mupdf-rs completely once mupdf-rs supports to add
   $ paru -S dagtoc
   ```
 
-- Install binary:
-
-  ```bash
-  $ paru -S dagtoc-bin
-  ```
-
 
 
 ## Usage

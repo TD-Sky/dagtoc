@@ -37,7 +37,7 @@ impl Toc<UserOutline<'_>> {
     }
 
     pub fn offset_pages(&mut self, count: i32) -> Result<(), PageOutbound> {
-        fn offset_pages_internal(
+        fn offset_pages_rec(
             outlines: &mut [UserOutline<'_>],
             count: i32,
         ) -> Result<(), PageOutbound> {
@@ -52,14 +52,14 @@ impl Toc<UserOutline<'_>> {
                 }
 
                 if !outline.down.is_empty() {
-                    offset_pages_internal(&mut outline.down, count)?;
+                    offset_pages_rec(&mut outline.down, count)?;
                 }
             }
 
             Ok(())
         }
 
-        offset_pages_internal(&mut self.0, count)
+        offset_pages_rec(&mut self.0, count)
     }
 
     pub fn as_pytoc(&self) -> Vec<PymupdfOutline<'_>> {
@@ -108,7 +108,7 @@ impl Toc<Outline> {
     }
 
     pub fn offset_pages(&mut self, count: i32) {
-        fn offset_pages_internal(outlines: &mut [Outline], count: i32) {
+        fn offset_pages_rec(outlines: &mut [Outline], count: i32) {
             for outline in outlines {
                 if let Some(page) = outline.page.map(|p| p as i32) {
                     let new_page = page + count;
@@ -118,11 +118,11 @@ impl Toc<Outline> {
                 }
 
                 if !outline.down.is_empty() {
-                    offset_pages_internal(&mut outline.down, count);
+                    offset_pages_rec(&mut outline.down, count);
                 }
             }
         }
 
-        offset_pages_internal(&mut self.0, count)
+        offset_pages_rec(&mut self.0, count)
     }
 }
