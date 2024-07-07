@@ -1,33 +1,20 @@
-use std::fs::File;
-use std::io::Read;
+use std::fs;
 use std::path::Path;
 
-use anyhow::Result;
 use kdl::KdlDocument;
-use mupdf::Document;
-use pyo3::types::PyTuple;
-use pyo3::Python;
+use mupdf::pdf::PdfDocument;
+use mupdf::{Document, Outline};
 
 use crate::toc::Toc;
 
-pub fn delete(pdf: &Path, output: &Path) -> Result<()> {
-    Python::with_gil(|py| {
-        let fitz = py.import("fitz")?;
-        let pdf = fitz.getattr("open")?.call1(PyTuple::new(py, [pdf]))?;
-
-        let args = PyTuple::new(py, [py.None()]);
-        pdf.call_method1("set_toc", args)?;
-
-        let args = PyTuple::new(py, [output]);
-        pdf.call_method1("save", args)?;
-
-        pdf.call_method0("close")?;
-
-        Ok(())
-    })
+pub fn delete(pdf: &Path, output: &Path) -> anyhow::Result<()> {
+    let mut pdf = PdfDocument::open(pdf.to_string_lossy().as_ref())?;
+    pdf.delete_outlines()?;
+    pdf.save(output.to_string_lossy().as_ref())?;
+    Ok(())
 }
 
-pub fn get(pdf: &Path, offset: i32) -> Result<()> {
+pub fn get(pdf: &Path, offset: i32) -> anyhow::Result<()> {
     let pdf = Document::open(pdf.to_string_lossy().as_ref())?;
     let mut toc = Toc(pdf.outlines()?);
 
@@ -41,9 +28,8 @@ pub fn get(pdf: &Path, offset: i32) -> Result<()> {
     Ok(())
 }
 
-pub fn add(pdf: &Path, output: &Path, toc: &Path, offset: i32) -> Result<()> {
-    let mut buf = String::new();
-    File::open(toc)?.read_to_string(&mut buf)?;
+pub fn add(pdf: &Path, output: &Path, toc: &Path, offset: i32) -> anyhow::Result<()> {
+    let buf = fs::read_to_string(toc)?;
     let toc: KdlDocument = buf.parse()?;
     let mut toc = Toc::try_from(&toc)?;
 
@@ -53,23 +39,16 @@ pub fn add(pdf: &Path, output: &Path, toc: &Path, offset: i32) -> Result<()> {
         toc.offset_pages(offset)?;
     }
 
-    Python::with_gil(|py| {
-        let fitz = py.import("fitz")?;
-        let pdf = fitz.getattr("open")?.call1(PyTuple::new(py, [pdf]))?;
+    let toc: Vec<Outline> = toc.into();
 
-        let args = PyTuple::new(py, [toc.as_pytoc()]);
-        pdf.call_method1("set_toc", args)?;
+    let mut pdf = PdfDocument::open(pdf.to_string_lossy().as_ref())?;
+    pdf.set_outlines(&toc)?;
+    pdf.save(output.to_string_lossy().as_ref())?;
 
-        let args = PyTuple::new(py, [output]);
-        pdf.call_method1("save", args)?;
-
-        pdf.call_method0("close")?;
-
-        Ok(())
-    })
+    Ok(())
 }
 
-pub fn check(pdf: &Path) -> Result<()> {
+pub fn check(pdf: &Path) -> anyhow::Result<()> {
     let pdf = Document::open(pdf.to_string_lossy().as_ref())?;
     let toc = Toc(pdf.outlines()?);
     toc.verify()?;

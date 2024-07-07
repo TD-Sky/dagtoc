@@ -1,3 +1,6 @@
+use std::num::NonZeroU32;
+
+use anyhow::bail;
 use kdl::{KdlDocument, KdlNode};
 use mupdf::Outline;
 
@@ -34,7 +37,7 @@ fn outlines_into_kdl_doc(outlines: &[Outline]) -> KdlDocument {
 }
 
 impl<'kdl> TryFrom<&'kdl KdlDocument> for Toc<UserOutline<'kdl>> {
-    type Error = KdlNodeError;
+    type Error = anyhow::Error;
 
     #[inline]
     fn try_from(doc: &'kdl KdlDocument) -> Result<Self, Self::Error> {
@@ -42,7 +45,7 @@ impl<'kdl> TryFrom<&'kdl KdlDocument> for Toc<UserOutline<'kdl>> {
     }
 }
 
-fn kdl_doc_try_into_outlines(doc: &KdlDocument) -> Result<Vec<UserOutline<'_>>, KdlNodeError> {
+fn kdl_doc_try_into_outlines(doc: &KdlDocument) -> anyhow::Result<Vec<UserOutline<'_>>> {
     let nodes = doc.nodes();
     let mut outlines = Vec::with_capacity(nodes.len());
 
@@ -54,7 +57,7 @@ fn kdl_doc_try_into_outlines(doc: &KdlDocument) -> Result<Vec<UserOutline<'_>>, 
 }
 
 impl<'kdl> TryFrom<&'kdl KdlNode> for UserOutline<'kdl> {
-    type Error = KdlNodeError;
+    type Error = anyhow::Error;
 
     fn try_from(node: &'kdl KdlNode) -> Result<Self, Self::Error> {
         let title = node
@@ -64,11 +67,17 @@ impl<'kdl> TryFrom<&'kdl KdlNode> for UserOutline<'kdl> {
         let page = node
             .get(1)
             .and_then(|e| e.value().as_i64())
-            .ok_or_else(|| KdlNodeError::new(node))? as u32;
-        let down = match node.children() {
-            Some(doc) => kdl_doc_try_into_outlines(doc)?,
-            None => vec![],
+            .ok_or_else(|| KdlNodeError::new(node))?;
+        let page = if page > 0 {
+            unsafe { NonZeroU32::new_unchecked(page as u32) }
+        } else {
+            bail!("`{page}` is not a valid page number");
         };
+        let down = node
+            .children()
+            .map(kdl_doc_try_into_outlines)
+            .transpose()?
+            .unwrap_or_default();
 
         Ok(UserOutline { title, page, down })
     }
@@ -76,9 +85,9 @@ impl<'kdl> TryFrom<&'kdl KdlNode> for UserOutline<'kdl> {
 
 pub use error::*;
 mod error {
-    use kdl::KdlNode;
-    use std::fmt;
     use std::iter;
+
+    use kdl::KdlNode;
 
     #[derive(Debug)]
     pub struct KdlNodeError(String);
@@ -93,8 +102,8 @@ mod error {
         }
     }
 
-    impl fmt::Display for KdlNodeError {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    impl std::fmt::Display for KdlNodeError {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             write!(f, "KDL node error: `{}`", self.0.trim())
         }
     }

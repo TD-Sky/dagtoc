@@ -12,18 +12,24 @@ readme = "README.md"
 license = "GPL-3.0"
 include = ["src/**/*", "Cargo.toml", "Cargo.lock", "LICENSE*", "README.md"]
 
-[dependencies]
-anyhow = "1.0.72"
-clap = { version = "4.3.19", features = ["derive"] }
-kdl = "4.6.0"
-mupdf = "0.4.2"
-pyo3 = { version = "0.19.2", features = ["auto-initialize"] }
-
-[build-dependencies]
-clap = { version = "4.3.19", features = ["derive", "env"] }
+[workspace.dependencies]
+anyhow = "1"
+clap = { version = "4.5", features = ["derive"] }
+kdl = "4.6"
+mupdf = { git = "https://github.com/TD-Sky/mupdf-rs.git", branch = "set-outlines" }
 clap_complete = "4.3.2"
 clap_complete_nushell = "4.3.1"
 
+[dependencies]
+anyhow = { workspace = true }
+clap = { workspace = true, features = ["derive"] }
+kdl = { workspace = true }
+mupdf = { workspace = true }
+
+[build-dependencies]
+clap = { workspace = true, features = ["derive", "env"] }
+clap_complete = { workspace = true }
+clap_complete_nushell = { workspace = true }
+
 [profile.release]
 lto = true
-strip = true

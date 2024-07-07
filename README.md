@@ -1,13 +1,10 @@
-<h1 align="center">🐍 dagtoc 📖</h1>
+<h1 align="center">🦀 dagtoc 📖</h1>
 
 <h5 align="center">A command-line tool for adding, getting and deleting contents of pdf</h5>
 
 ## Introduction
 
-**dagtoc** uses [MuPdf](https://mupdf.com/) as the underlying support.
-At present dagtoc develops on both of bindings [PyMuPDF](https://github.com/pymupdf/PyMuPDF) and [mupdf-rs](https://github.com/messense/mupdf-rs).
-
-I plan to replace PyMuPDF with mupdf-rs completely once mupdf-rs supports to add/delete outlines.
+**dagtoc** uses [MuPdf](https://mupdf.com/) as the underlying PDF operator.
 
 
 
@@ -15,13 +12,7 @@ I plan to replace PyMuPDF with mupdf-rs completely once mupdf-rs supports to add
 
 ### Language package managers
 
-1. Install `pymupdf` via *pip*:
-
-    ```bash
-    $ pip3 install pymupdf
-    ```
-
-2. Install `dagtoc` via *cargo*:
+- Install via *cargo*:
 
    ```bash
    $ cargo install dagtoc

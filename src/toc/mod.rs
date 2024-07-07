@@ -1,7 +1,10 @@
 mod error;
-pub use error::*;
+
+use std::num::NonZeroU32;
 
 use mupdf::Outline;
+
+pub use self::error::*;
 
 #[derive(Debug)]
 pub struct Toc<O>(pub(super) Vec<O>);
@@ -9,21 +12,38 @@ pub struct Toc<O>(pub(super) Vec<O>);
 #[derive(Debug)]
 pub struct UserOutline<'toc> {
     pub title: &'toc str,
-    pub page: u32,
+    pub page: NonZeroU32,
     pub down: Vec<UserOutline<'toc>>,
 }
 
-pub type PymupdfOutline<'toc> = (u32, &'toc str, u32);
+impl From<Toc<UserOutline<'_>>> for Vec<Outline> {
+    fn from(user: Toc<UserOutline>) -> Self {
+        user.0.iter().map(Outline::from).collect()
+    }
+}
+
+impl From<&UserOutline<'_>> for Outline {
+    fn from(user: &UserOutline) -> Self {
+        Self {
+            title: user.title.to_owned(),
+            uri: None,
+            page: Some(user.page.get() - 1),
+            down: user.down.iter().map(|item| item.into()).collect(),
+            x: f32::NAN,
+            y: f32::NAN,
+        }
+    }
+}
 
 impl Toc<UserOutline<'_>> {
     pub fn verify(&self) -> Result<(), TocError> {
         fn verify_rec(outlines: &[UserOutline<'_>], pre_page: &mut u32) -> Result<(), TocError> {
             for outline in outlines {
-                if outline.page < *pre_page {
+                if outline.page.get() < *pre_page {
                     return Err(TocError::new(outline.title, *pre_page));
                 }
 
-                *pre_page = outline.page;
+                *pre_page = outline.page.get();
 
                 if !outline.down.is_empty() {
                     verify_rec(&outline.down, pre_page)?;
@@ -42,13 +62,13 @@ impl Toc<UserOutline<'_>> {
             count: i32,
         ) -> Result<(), PageOutbound> {
             for outline in outlines {
-                let page = outline.page as i32;
+                let page = outline.page.get() as i32;
 
                 let new_page = page + count;
                 if new_page > 0 {
-                    outline.page = new_page as u32;
+                    outline.page = unsafe { NonZeroU32::new_unchecked(new_page as u32) };
                 } else {
-                    return Err(PageOutbound::new(outline.page, count));
+                    return Err(PageOutbound::new(outline.page.get(), count));
                 }
 
                 if !outline.down.is_empty() {
@@ -60,25 +80,6 @@ impl Toc<UserOutline<'_>> {
         }
 
         offset_pages_rec(&mut self.0, count)
-    }
-
-    pub fn as_pytoc(&self) -> Vec<PymupdfOutline<'_>> {
-        fn as_pytoc_rec<'toc>(
-            outlines: &'toc [UserOutline<'toc>],
-            pytoc: &mut Vec<PymupdfOutline<'toc>>,
-            level: u32,
-        ) {
-            for outline in outlines {
-                pytoc.push((level, outline.title, outline.page));
-                if !outline.down.is_empty() {
-                    as_pytoc_rec(&outline.down, pytoc, level + 1);
-                }
-            }
-        }
-
-        let mut pytoc = vec![];
-        as_pytoc_rec(&self.0, &mut pytoc, 1);
-        pytoc
     }
 }
 
