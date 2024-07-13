@@ -15,7 +15,7 @@
 - Install via *cargo*:
 
    ```bash
-   $ cargo install dagtoc
+   $ cargo install --git https://github.com/TD-Sky/dagtoc.git
    ```
 
 ### Archlinux
@@ -24,6 +24,12 @@
 
   ```bash
   $ paru -S dagtoc
+  ```
+
+- Or install binary:
+
+  ```bash
+  $ paru -S dagtoc-bin
   ```
 
 
