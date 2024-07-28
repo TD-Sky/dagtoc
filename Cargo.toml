@@ -15,19 +15,19 @@ include = ["src/**/*", "Cargo.toml", "Cargo.lock", "LICENSE*", "README.md"]
 [workspace.dependencies]
 anyhow = "1"
 clap = { version = "4.5", features = ["derive"] }
+clap_complete = "4.5"
+clap_complete_nushell = "4.5"
 kdl = "4.6"
-mupdf = { git = "https://github.com/TD-Sky/mupdf-rs.git", branch = "set-outlines" }
-clap_complete = "4.3.2"
-clap_complete_nushell = "4.3.1"
+mupdf = "0.4"
 
 [dependencies]
 anyhow = { workspace = true }
-clap = { workspace = true, features = ["derive"] }
+clap = { workspace = true }
 kdl = { workspace = true }
 mupdf = { workspace = true }
 
 [build-dependencies]
-clap = { workspace = true, features = ["derive", "env"] }
+clap = { workspace = true }
 clap_complete = { workspace = true }
 clap_complete_nushell = { workspace = true }
 
