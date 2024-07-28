@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.0.1] - 2024-07-28
+
+### Documentation
+
+- *(readme)* Cargo install dagtoc
+
+### Miscellaneous Tasks
+- *(no category)* Ignore completions
+
+
 ## [5.0.0] - 2024-07-13
 
 ### Features
