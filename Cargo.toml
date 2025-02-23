@@ -1,6 +1,6 @@
 [package]
 name = "dagtoc"
-version = "5.0.1"
+version = "5.1.0"
 authors = ["Collide <three-dim-sky@foxmail.com>"]
 edition = "2024"
 categories = ["command-line-utilities"]
