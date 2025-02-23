@@ -1,7 +1,6 @@
 mod cli;
 use cli::Cli;
 
-mod codec;
 mod handlers;
 mod toc;
 

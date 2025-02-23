@@ -2,7 +2,7 @@
 name = "dagtoc"
 version = "5.0.1"
 authors = ["Collide <three-dim-sky@foxmail.com>"]
-edition = "2021"
+edition = "2024"
 categories = ["command-line-utilities"]
 keywords = ["pdf"]
 description = "A CLI tool for operating pdf contents"
@@ -17,7 +17,7 @@ anyhow = "1"
 clap = { version = "4.5", features = ["derive"] }
 clap_complete = "4.5"
 clap_complete_nushell = "4.5"
-kdl = "4.6"
+kdl = "6.3"
 mupdf = "0.4"
 
 [dependencies]

@@ -1,11 +1,10 @@
 use std::num::NonZeroU32;
 
 use anyhow::bail;
-use kdl::{KdlDocument, KdlNode};
+use kdl::{KdlDocument, KdlNode, KdlValue};
 use mupdf::Outline;
 
-use crate::toc::Toc;
-use crate::toc::UserOutline;
+use super::{Toc, UserOutline};
 
 impl From<&Toc<Outline>> for KdlDocument {
     #[inline]
@@ -23,7 +22,7 @@ fn outlines_into_kdl_doc(outlines: &[Outline]) -> KdlDocument {
         node.push(outline.title.to_owned());
 
         if let Some(page) = outline.page {
-            node.push(page as i64 + 1);
+            node.push(page as i128 + 1);
         }
 
         if !outline.down.is_empty() {
@@ -62,11 +61,11 @@ impl<'kdl> TryFrom<&'kdl KdlNode> for UserOutline<'kdl> {
     fn try_from(node: &'kdl KdlNode) -> Result<Self, Self::Error> {
         let title = node
             .get(0)
-            .and_then(|e| e.value().as_string())
+            .and_then(KdlValue::as_string)
             .ok_or_else(|| KdlNodeError::new(node))?;
         let page = node
             .get(1)
-            .and_then(|e| e.value().as_i64())
+            .and_then(KdlValue::as_integer)
             .ok_or_else(|| KdlNodeError::new(node))?;
         let page = if page > 0 {
             unsafe { NonZeroU32::new_unchecked(page as u32) }
