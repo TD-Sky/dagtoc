@@ -1,7 +1,6 @@
 [package]
 name = "dagtoc"
 version = "5.1.0"
-authors = ["Collide <three-dim-sky@foxmail.com>"]
 edition = "2024"
 categories = ["command-line-utilities"]
 keywords = ["pdf"]
@@ -12,24 +11,11 @@ readme = "README.md"
 license = "GPL-3.0"
 include = ["src/**/*", "Cargo.toml", "Cargo.lock", "LICENSE*", "README.md"]
 
-[workspace.dependencies]
-anyhow = "1"
-clap = { version = "4.5", features = ["derive"] }
-clap_complete = "4.5"
-clap_complete_nushell = "4.5"
-kdl = "6.3"
-mupdf = "0.4"
-
 [dependencies]
-anyhow = { workspace = true }
-clap = { workspace = true }
-kdl = { workspace = true }
-mupdf = { workspace = true }
-
-[build-dependencies]
-clap = { workspace = true }
-clap_complete = { workspace = true }
-clap_complete_nushell = { workspace = true }
+usage-rs = { version = "7.1", features = ["completions"] }
+anyhow = "1"
+kdl = "6.7"
+mupdf = "0.4"
 
 [profile.release]
 lto = true
