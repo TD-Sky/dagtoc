@@ -1,20 +1,17 @@
-use std::fmt;
-
 #[derive(Debug)]
 pub struct TocError {
-    title: String,
-    pre_page: u32,
+    pub title: String,
+    pub pre_page: usize,
 }
 
 #[derive(Debug)]
 pub struct PageOutbound {
-    page: u32,
-    offset: i32,
+    pub page: usize,
+    pub offset: isize,
 }
 
 impl TocError {
-    #[inline]
-    pub fn new(title: impl Into<String>, pre_page: u32) -> Self {
+    pub fn new(title: impl Into<String>, pre_page: usize) -> Self {
         Self {
             title: title.into(),
             pre_page,
@@ -22,8 +19,8 @@ impl TocError {
     }
 }
 
-impl fmt::Display for TocError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl std::fmt::Display for TocError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "error occurs in TOC: title={}, previous page={}",
@@ -33,21 +30,13 @@ impl fmt::Display for TocError {
 }
 
 impl std::error::Error for TocError {
-    #[inline]
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         None
     }
 }
 
-impl PageOutbound {
-    #[inline]
-    pub fn new(page: u32, offset: i32) -> Self {
-        Self { page, offset }
-    }
-}
-
-impl fmt::Display for PageOutbound {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl std::fmt::Display for PageOutbound {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "page offset went out bound: page={}, offset={}",
@@ -57,7 +46,6 @@ impl fmt::Display for PageOutbound {
 }
 
 impl std::error::Error for PageOutbound {
-    #[inline]
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         None
     }

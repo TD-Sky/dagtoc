@@ -53,7 +53,7 @@ pub struct AddArgs {
         allow_negative_numbers = true,
         default = "0"
     )]
-    pub offset: i32,
+    pub offset: isize,
 }
 
 #[derive(Debug, Args)]
@@ -69,7 +69,7 @@ pub struct GetArgs {
         allow_negative_numbers = true,
         default = "0"
     )]
-    pub offset: i32,
+    pub offset: isize,
 }
 
 #[derive(Debug, Args)]

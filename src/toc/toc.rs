@@ -1,6 +1,6 @@
-use std::num::NonZeroU32;
+use std::num::NonZero;
 
-use mupdf::Outline;
+use pdf_oxide::{Destination, OutlineItem};
 
 use super::{PageOutbound, TocError};
 
@@ -10,32 +10,29 @@ pub struct Toc<O>(pub(crate) Vec<O>);
 #[derive(Debug)]
 pub struct UserOutline<'toc> {
     pub title: &'toc str,
-    pub page: NonZeroU32,
-    pub down: Vec<UserOutline<'toc>>,
+    pub page: NonZero<usize>,
+    pub children: Vec<UserOutline<'toc>>,
 }
 
-impl From<Toc<UserOutline<'_>>> for Vec<Outline> {
+impl From<Toc<UserOutline<'_>>> for Vec<OutlineItem> {
     fn from(user: Toc<UserOutline>) -> Self {
-        user.0.iter().map(Outline::from).collect()
+        user.0.iter().map(OutlineItem::from).collect()
     }
 }
 
-impl From<&UserOutline<'_>> for Outline {
+impl From<&UserOutline<'_>> for OutlineItem {
     fn from(user: &UserOutline) -> Self {
         Self {
-            title: user.title.to_owned(),
-            uri: None,
-            page: Some(user.page.get() - 1),
-            down: user.down.iter().map(|item| item.into()).collect(),
-            x: f32::NAN,
-            y: f32::NAN,
+            title: user.title.into(),
+            dest: Some(Destination::PageIndex(user.page.get() - 1)),
+            children: user.children.iter().map(|item| item.into()).collect(),
         }
     }
 }
 
 impl Toc<UserOutline<'_>> {
     pub fn verify(&self) -> Result<(), TocError> {
-        fn verify_rec(outlines: &[UserOutline<'_>], pre_page: &mut u32) -> Result<(), TocError> {
+        fn verify_rec(outlines: &[UserOutline<'_>], pre_page: &mut usize) -> Result<(), TocError> {
             for outline in outlines {
                 if outline.page.get() < *pre_page {
                     return Err(TocError::new(outline.title, *pre_page));
@@ -43,8 +40,8 @@ impl Toc<UserOutline<'_>> {
 
                 *pre_page = outline.page.get();
 
-                if !outline.down.is_empty() {
-                    verify_rec(&outline.down, pre_page)?;
+                if !outline.children.is_empty() {
+                    verify_rec(&outline.children, pre_page)?;
                 }
             }
 
@@ -54,23 +51,26 @@ impl Toc<UserOutline<'_>> {
         verify_rec(&self.0, &mut 0)
     }
 
-    pub fn offset_pages(&mut self, count: i32) -> Result<(), PageOutbound> {
+    pub fn offset_pages(&mut self, count: isize) -> Result<(), PageOutbound> {
         fn offset_pages_rec(
             outlines: &mut [UserOutline<'_>],
-            count: i32,
+            count: isize,
         ) -> Result<(), PageOutbound> {
             for outline in outlines {
-                let page = outline.page.get() as i32;
+                let page = outline.page.get() as isize;
 
                 let new_page = page + count;
                 if new_page > 0 {
-                    outline.page = unsafe { NonZeroU32::new_unchecked(new_page as u32) };
+                    outline.page = unsafe { NonZero::new_unchecked(new_page as usize) };
                 } else {
-                    return Err(PageOutbound::new(outline.page.get(), count));
+                    return Err(PageOutbound {
+                        page: outline.page.get(),
+                        offset: count,
+                    });
                 }
 
-                if !outline.down.is_empty() {
-                    offset_pages_rec(&mut outline.down, count)?;
+                if !outline.children.is_empty() {
+                    offset_pages_rec(&mut outline.children, count)?;
                 }
             }
 
@@ -81,13 +81,13 @@ impl Toc<UserOutline<'_>> {
     }
 }
 
-impl Toc<Outline> {
+impl Toc<OutlineItem> {
     pub fn verify(&self) -> Result<(), TocError> {
-        fn verify_rec(outlines: &[Outline], pre_page: &mut u32) -> Result<(), TocError> {
+        fn verify_rec(outlines: &[OutlineItem], pre_page: &mut usize) -> Result<(), TocError> {
             for outline in outlines {
-                let page = outline
-                    .page
-                    .ok_or_else(|| TocError::new(&outline.title, *pre_page))?;
+                let Some(Destination::PageIndex(page)) = outline.dest else {
+                    return Err(TocError::new(&outline.title, *pre_page));
+                };
 
                 if page < *pre_page {
                     return Err(TocError::new(&outline.title, *pre_page));
@@ -95,8 +95,8 @@ impl Toc<Outline> {
 
                 *pre_page = page;
 
-                if !outline.down.is_empty() {
-                    verify_rec(&outline.down, pre_page)?;
+                if !outline.children.is_empty() {
+                    verify_rec(&outline.children, pre_page)?;
                 }
             }
 
@@ -106,18 +106,19 @@ impl Toc<Outline> {
         verify_rec(&self.0, &mut 0)
     }
 
-    pub fn offset_pages(&mut self, count: i32) {
-        fn offset_pages_rec(outlines: &mut [Outline], count: i32) {
+    pub fn offset_pages(&mut self, count: isize) {
+        fn offset_pages_rec(outlines: &mut [OutlineItem], count: isize) {
             for outline in outlines {
-                if let Some(page) = outline.page.map(|p| p as i32) {
-                    let new_page = page + count;
+                if let Some(Destination::PageIndex(page)) = outline.dest {
+                    let new_page = page as isize + count;
                     // NOTE: mupdf-rs' page count from 0;
                     // if offset goes outbound, set the page to `None`
-                    outline.page = (new_page >= 0).then_some(new_page as u32);
+                    outline.dest =
+                        (new_page >= 0).then_some(Destination::PageIndex(new_page as usize));
                 }
 
-                if !outline.down.is_empty() {
-                    offset_pages_rec(&mut outline.down, count);
+                if !outline.children.is_empty() {
+                    offset_pages_rec(&mut outline.children, count);
                 }
             }
         }

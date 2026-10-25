@@ -13,9 +13,13 @@ include = ["src/**/*", "Cargo.toml", "Cargo.lock", "LICENSE*", "README.md"]
 
 [dependencies]
 usage-rs = { version = "7.1", features = ["completions"] }
-anyhow = "1"
+eros = "0.8"
 kdl = "6.7"
-mupdf = "0.4"
+pdf_oxide = "0.3.78"
 
 [profile.release]
 lto = true
+
+[lints.clippy]
+new_without_default = "allow"
+module_inception = "allow"
