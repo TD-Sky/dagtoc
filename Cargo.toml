@@ -8,7 +8,7 @@ description = "A CLI tool for operating pdf contents"
 repository = "https://github.com/TD-Sky/dagtoc"
 documentation = "https://github.com/TD-Sky/dagtoc"
 readme = "README.md"
-license = "GPL-3.0"
+license = "MIT"
 include = ["src/**/*", "Cargo.toml", "Cargo.lock", "LICENSE*", "README.md"]
 
 [dependencies]
