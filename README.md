@@ -1,22 +1,23 @@
 <h1 align="center">🦀 dagtoc 📖</h1>
 
+<p align="center">
+  <a href="https://crates.io/crates/dagtoc"><img src="https://img.shields.io/crates/v/dagtoc.svg?style=flat-square" /></a>
+  <a href="https://crates.io/crates/dagtoc"><img src="https://img.shields.io/crates/d/dagtoc.svg?style=flat-square" /></a>
+  <a href="https://github.com/td-sky/dagtoc/actions/workflows/check.yml"><img src="https://github.com/td-sky/dagtoc/actions/workflows/check.yml/badge.svg?style=flat-square" alt="Check"></a>
+  <a href="https://github.com/td-sky/dagtoc/actions/workflows/test.yml"><img src="https://github.com/td-sky/dagtoc/actions/workflows/test.yml/badge.svg?style=flat-square" alt="Test"></a>
+</p>
+
 <h5 align="center">A command-line tool for adding, getting and deleting contents of pdf</h5>
-
-## Introduction
-
-**dagtoc** uses [MuPdf](https://mupdf.com/) as the underlying PDF operator.
-
-
 
 ## Installation
 
 ### Language package managers
 
-- Install via *cargo*:
+- Install via _cargo_:
 
-   ```bash
-   $ cargo install dagtoc
-   ```
+  ```bash
+  $ cargo install dagtoc
+  ```
 
 ### Archlinux
 
@@ -31,8 +32,6 @@
   ```bash
   $ paru -S dagtoc-bin
   ```
-
-
 
 ## Usage
 
@@ -64,7 +63,7 @@ You can nest them certainly! See [Makefile.kdl](./demo/Makefile.kdl) for a real 
 ### Add TOC
 
 ```bash
-$ dagtoc -a Makefile.kdl Makefile-NOTOC.pdf -o Makefile.pdf
+$ dagtoc add Makefile-NOTOC.pdf --toc Makefile.kdl -o Makefile.pdf
 ```
 
 Additionally, you can use `-x` to specify the page number offset (+/-) for added TOC.
@@ -74,13 +73,13 @@ It would help you amend the TOC whose page numbers are all offset by the same co
 ### Delete TOC
 
 ```bash
-$ dagtoc -d Makefile.pdf -o Makefile-NOTOC.pdf
+$ dagtoc delete Makefile.pdf -o Makefile-NOTOC.pdf
 ```
 
 ### Get TOC
 
 ```bash
-$ dagtoc -g Makefile.pdf > Makefile.kdl
+$ dagtoc get Makefile.pdf > Makefile.kdl
 ```
 
 Additionally, you can use `-x` to specify the page number offset (+/-) for got TOC.
@@ -90,12 +89,10 @@ It would help you amend the TOC of pdf whose page numbers are all offset by the 
 ### Check TOC
 
 ```bash
-$ dagtoc -c Makefile.pdf
+$ dagtoc check Makefile.pdf
 ```
 
 Checking the page numbers are increasing and not empty in the pdf.
-
-
 
 ## Remember dagtoc
 
