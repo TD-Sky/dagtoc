@@ -1,19 +1,18 @@
-use std::num::NonZeroU32;
+use std::num::NonZero;
 
-use anyhow::bail;
+use eros::bail;
 use kdl::{KdlDocument, KdlNode, KdlValue};
-use mupdf::Outline;
+use pdf_oxide::{Destination, OutlineItem};
 
 use super::{Toc, UserOutline};
 
-impl From<&Toc<Outline>> for KdlDocument {
-    #[inline]
-    fn from(toc: &Toc<Outline>) -> Self {
+impl From<&Toc<OutlineItem>> for KdlDocument {
+    fn from(toc: &Toc<OutlineItem>) -> Self {
         outlines_into_kdl_doc(&toc.0)
     }
 }
 
-fn outlines_into_kdl_doc(outlines: &[Outline]) -> KdlDocument {
+fn outlines_into_kdl_doc(outlines: &[OutlineItem]) -> KdlDocument {
     let mut doc = KdlDocument::new();
     let nodes = doc.nodes_mut();
 
@@ -21,12 +20,12 @@ fn outlines_into_kdl_doc(outlines: &[Outline]) -> KdlDocument {
         let mut node = KdlNode::new("-");
         node.push(outline.title.to_owned());
 
-        if let Some(page) = outline.page {
+        if let Some(Destination::PageIndex(page)) = outline.dest {
             node.push(page as i128 + 1);
         }
 
-        if !outline.down.is_empty() {
-            node.set_children(outlines_into_kdl_doc(&outline.down));
+        if !outline.children.is_empty() {
+            node.set_children(outlines_into_kdl_doc(&outline.children));
         }
 
         nodes.push(node);
@@ -36,15 +35,14 @@ fn outlines_into_kdl_doc(outlines: &[Outline]) -> KdlDocument {
 }
 
 impl<'kdl> TryFrom<&'kdl KdlDocument> for Toc<UserOutline<'kdl>> {
-    type Error = anyhow::Error;
+    type Error = eros::ErrorUnion;
 
-    #[inline]
     fn try_from(doc: &'kdl KdlDocument) -> Result<Self, Self::Error> {
         kdl_doc_try_into_outlines(doc).map(Toc)
     }
 }
 
-fn kdl_doc_try_into_outlines(doc: &KdlDocument) -> anyhow::Result<Vec<UserOutline<'_>>> {
+fn kdl_doc_try_into_outlines(doc: &KdlDocument) -> eros::Result<Vec<UserOutline<'_>>> {
     let nodes = doc.nodes();
     let mut outlines = Vec::with_capacity(nodes.len());
 
@@ -56,7 +54,7 @@ fn kdl_doc_try_into_outlines(doc: &KdlDocument) -> anyhow::Result<Vec<UserOutlin
 }
 
 impl<'kdl> TryFrom<&'kdl KdlNode> for UserOutline<'kdl> {
-    type Error = anyhow::Error;
+    type Error = eros::ErrorUnion;
 
     fn try_from(node: &'kdl KdlNode) -> Result<Self, Self::Error> {
         let title = node
@@ -68,9 +66,9 @@ impl<'kdl> TryFrom<&'kdl KdlNode> for UserOutline<'kdl> {
             .and_then(KdlValue::as_integer)
             .ok_or_else(|| KdlNodeError::new(node))?;
         let page = if page > 0 {
-            unsafe { NonZeroU32::new_unchecked(page as u32) }
+            unsafe { NonZero::new_unchecked(page as usize) }
         } else {
-            bail!("`{page}` is not a valid page number");
+            bail!("`{}` is not a valid page number", page);
         };
         let down = node
             .children()
@@ -78,7 +76,11 @@ impl<'kdl> TryFrom<&'kdl KdlNode> for UserOutline<'kdl> {
             .transpose()?
             .unwrap_or_default();
 
-        Ok(UserOutline { title, page, down })
+        Ok(UserOutline {
+            title,
+            page,
+            children: down,
+        })
     }
 }
 
@@ -108,7 +110,6 @@ mod error {
     }
 
     impl std::error::Error for KdlNodeError {
-        #[inline]
         fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
             None
         }

@@ -1,49 +1,102 @@
 use std::path::PathBuf;
 
-use clap::Args;
-use clap::Parser;
+use usage_rs::{Args, Subcommands, complete::Shell};
 
-#[derive(Parser)]
-#[command(version)]
+#[derive(usage_rs::Cli)]
+#[usage(bin = "dagtoc", version, completion)]
 pub struct Cli {
-    #[command(flatten)]
-    pub action: Action,
+    #[usage(subcommand)]
+    pub command: SubCommand,
+}
+
+#[derive(Subcommands)]
+pub enum SubCommand {
+    /// Get contents
+    #[usage(visible_alias = "g")]
+    Get(GetArgs),
+
+    /// Add contents via KDL
+    #[usage(visible_alias = "a")]
+    Add(AddArgs),
+
+    /// Delete contents
+    #[usage(visible_alias = "d")]
+    Delete(DeleteArgs),
+
+    /// Check whether the contents is valid
+    /// (all outlines numbered and pages are monotone increasing)
+    #[usage(visible_alias = "c")]
+    Check(CheckArgs),
+
+    /// Print a completion script
+    Completion(Completion),
+}
+
+#[derive(Debug, Args)]
+pub struct AddArgs {
+    /// TOC to be added
+    #[usage(long)]
+    pub toc: PathBuf,
+
+    /// Input PDF path
+    pub pdf: PathBuf,
+
+    /// Output PDF path
+    #[usage(long, short)]
+    pub output: PathBuf,
 
     /// ±count to pages of input/output TOC
-    #[arg(
+    #[usage(
         long,
         short = 'x',
         value_name = "COUNT",
         allow_negative_numbers = true,
-        default_value_t = 0
+        default = "0"
     )]
-    pub offset: i32,
+    pub offset: isize,
+}
+
+#[derive(Debug, Args)]
+pub struct GetArgs {
+    /// Input PDF path
+    pub pdf: PathBuf,
+
+    /// ±count to pages of input/output TOC
+    #[usage(
+        long,
+        short = 'x',
+        value_name = "COUNT",
+        allow_negative_numbers = true,
+        default = "0"
+    )]
+    pub offset: isize,
+}
+
+#[derive(Debug, Args)]
+pub struct DeleteArgs {
+    /// Input PDF path
+    pub pdf: PathBuf,
 
     /// Output PDF path
-    #[arg(long, short = 'o')]
-    pub output: Option<PathBuf>,
+    #[usage(long, short)]
+    pub output: PathBuf,
+}
 
+#[derive(Debug, Args)]
+pub struct CheckArgs {
     /// Input PDF path
     pub pdf: PathBuf,
 }
 
 #[derive(Args)]
-#[group(required = true, multiple = false)]
-pub struct Action {
-    /// Delete contents
-    #[arg(long, short, requires = "output")]
-    pub delete: bool,
+pub struct Completion {
+    /// Which shell to generate for
+    #[usage(long, choices("bash", "zsh", "fish", "nu", "powershell"))]
+    shell: String,
+}
 
-    /// Add contents via KDL
-    #[arg(long, short, value_name = "TOC", requires = "output")]
-    pub add: Option<PathBuf>,
-
-    /// Get contents
-    #[arg(long, short)]
-    pub get: bool,
-
-    /// Check whether the contents is valid
-    /// (all outlines numbered and pages are monotone increasing)
-    #[arg(long, short)]
-    pub check: bool,
+impl Completion {
+    pub fn shell(&self) -> Shell {
+        Shell::from_name(&self.shell).expect("verified during parsing cli")
+    }
 }
